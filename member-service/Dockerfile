@@ -1,0 +1,9 @@
+FROM eclipse-temurin:26-jdk-alpine
+
+WORKDIR /app
+
+COPY target/member-service-1.0.0.jar app.jar
+
+EXPOSE 8082
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

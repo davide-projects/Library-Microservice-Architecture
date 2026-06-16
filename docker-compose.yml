@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+
+  book-service:
+    build:
+      context: ./book-service
+    image: book-service
+    container_name: book-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/book_service_db
+      SPRING_DATASOURCE_USERNAME: librarian
+      SPRING_DATASOURCE_PASSWORD: Libr@ry2026
+    networks:
+      - library-network
+
+  member-service:
+    build:
+      context: ./member-service
+    image: member-service
+    container_name: member-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/member_service_db
+      SPRING_DATASOURCE_USERNAME: librarian
+      SPRING_DATASOURCE_PASSWORD: Libr@ry2026
+    networks:
+      - library-network
+
+  loan-service:
+    build:
+      context: ./loan-service
+    image: loan-service
+    container_name: loan-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/loan_service_db
+      SPRING_DATASOURCE_USERNAME: librarian
+      SPRING_DATASOURCE_PASSWORD: Libr@ry2026
+      MICROSERVICES_BOOK-SERVICE_URL: http://book-service:8081/book
+      MICROSERVICES_MEMBER-SERVICE_URL: http://member-service:8082/members
+    depends_on:
+      - book-service
+      - member-service
+    networks:
+      - library-network
+
+networks:
+  library-network:
+    driver: bridge
