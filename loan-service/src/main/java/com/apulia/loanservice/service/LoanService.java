@@ -42,6 +42,22 @@ public class LoanService {
                 .orElseThrow(() -> new LoanNotFoundException("Loan with ID " + id + " not found"));
     }
 
+    @Transactional(readOnly = true)
+    public LoanDetailsDTO getLoanDetailsById(Integer id) {
+        Loan loan = getLoanById(id);
+        var book = bookClient.getBookById(loan.getBookId());
+        var member = memberClient.getMemberById(loan.getMemberId());
+        return new LoanDetailsDTO(
+                loan,
+                book,
+                member,
+                loan.getLoanDate(),
+                loan.getReturnDate()
+        );
+    }
+
+
+
     // CREATE MULTIPLE LOANS
     @Transactional
     public List<Loan> createLoans(LoanRequestDTO request) {
@@ -106,12 +122,10 @@ public class LoanService {
 
     public List<LoanDetailsDTO> getLoanDetails() {
         List<Loan> loans = loanRepository.findAll();
-
         return loans.stream()
                 .map(loan -> {
                     var book = bookClient.getBookById(loan.getBookId());
                     var member = memberClient.getMemberById(loan.getMemberId());
-
                     return new LoanDetailsDTO(
                             loan,
                             book,

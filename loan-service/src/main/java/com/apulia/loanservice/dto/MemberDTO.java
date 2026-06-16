@@ -10,6 +10,14 @@ public class MemberDTO {
 
     public MemberDTO() {}
 
+    public MemberDTO(Integer id, String firstName, String lastName, String city, String phone) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.city = city;
+        this.phone = phone;
+    }
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 

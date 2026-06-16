@@ -27,13 +27,18 @@ public class LoanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Loan> getLoanById(@PathVariable Integer id) {
+    public ResponseEntity<Loan> getLoanById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(loanService.getLoanById(id));
     }
 
     @GetMapping("/details")
     public ResponseEntity<List<LoanDetailsDTO>> getLoanDetails() {
         return ResponseEntity.ok(loanService.getLoanDetails());
+    }
+
+    @GetMapping("/details/{id}")
+    public ResponseEntity<LoanDetailsDTO> getLoanDetailsById(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(loanService.getLoanDetailsById(id));
     }
 
     @PostMapping
@@ -43,12 +48,12 @@ public class LoanController {
     }
 
     @PatchMapping("/{id}/return")
-    public ResponseEntity<Loan> returnBook(@PathVariable Integer id) {
+    public ResponseEntity<Loan> returnBook(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(loanService.returnBook(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLoan(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteLoan(@PathVariable("id") Integer id) {
         loanService.deleteLoan(id);
         return ResponseEntity.noContent().build();
     }
