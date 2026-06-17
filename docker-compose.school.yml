@@ -10,7 +10,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/book_service_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/book_service_db
       SPRING_DATASOURCE_USERNAME: librarian
       SPRING_DATASOURCE_PASSWORD: Libr@ry2026
     networks:
@@ -24,7 +24,7 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/member_service_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/member_service_db
       SPRING_DATASOURCE_USERNAME: librarian
       SPRING_DATASOURCE_PASSWORD: Libr@ry2026
     networks:
@@ -38,11 +38,11 @@ services:
     ports:
       - "8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/loan_service_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3307/loan_service_db
       SPRING_DATASOURCE_USERNAME: librarian
       SPRING_DATASOURCE_PASSWORD: Libr@ry2026
 
-      # Microservizi interni (usano i nomi dei container)
+      # Microservizi interni (uguali ovunque)
       MICROSERVICES_BOOK-SERVICE_URL: http://book-service:8081/book
       MICROSERVICES_MEMBER-SERVICE_URL: http://member-service:8082/members
 
