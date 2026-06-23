@@ -2,7 +2,6 @@ package com.apulia.apigateway.ratelimit;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -41,8 +40,10 @@ public class RateLimiterFilter implements WebFilter {
     }
 
     private Bucket createBucket(String clientIp) {
-        Refill refill = Refill.intervally(config.getRefillTokens(), Duration.ofSeconds(config.getRefillSeconds()));
-        Bandwidth limit = Bandwidth.classic(config.getCapacity(), refill);
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(config.getCapacity())
+                .refillIntervally(config.getRefillTokens(), Duration.ofSeconds(config.getRefillSeconds()))
+                .build();
         return Bucket.builder().addLimit(limit).build();
     }
 

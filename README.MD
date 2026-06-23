@@ -237,6 +237,7 @@ Library-Microservice-Architecture/
 - [x] Migrazioni database con Flyway
 - [x] Rate limiting sul gateway (Bucket4j)
 - [ ] Autenticazione JWT / OAuth2 (Keycloak)
+- [ ] Implementare Circuit Breaker (Resilience4j) su chiamate REST tra servizi
 
 
 ---
