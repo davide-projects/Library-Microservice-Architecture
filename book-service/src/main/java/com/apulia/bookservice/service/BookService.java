@@ -1,5 +1,6 @@
 package com.apulia.bookservice.service;
 
+import com.apulia.bookservice.dto.BookPatchDTO;
 import com.apulia.bookservice.exception.BookNotFoundException;
 import com.apulia.bookservice.exception.SearchException;
 import com.apulia.bookservice.model.Book;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class BookService {
@@ -47,40 +47,19 @@ public class BookService {
     }
 
     @Transactional
-    public Book patchBook(int id, Map<String, Object> updates) {
+    public Book patchBook(int id, BookPatchDTO patch) {
 
         Book existingBook = getBookById(id);
 
-        updates.forEach((key, value) -> {
-
-            if (value == null) {
-                throw new SearchException("Field '" + key + "' cannot be null");
-            }
-
-            String stringValue = value.toString().trim();
-
-            switch (key) {
-                case "title" -> {
-                    if (stringValue.isBlank()) {
-                        throw new SearchException("Title cannot be empty");
-                    }
-                    existingBook.setTitle(stringValue);
-                }
-                case "author" -> {
-                    if (stringValue.isBlank()) {
-                        throw new SearchException("Author cannot be empty");
-                    }
-                    existingBook.setAuthor(stringValue);
-                }
-                case "publisher" -> {
-                    if (stringValue.isBlank()) {
-                        throw new SearchException("Publisher cannot be empty");
-                    }
-                    existingBook.setPublisher(stringValue);
-                }
-                default -> throw new SearchException("Field '" + key + "' is not supported");
-            }
-        });
+        if (patch.getTitle() != null) {
+            existingBook.setTitle(patch.getTitle().trim());
+        }
+        if (patch.getAuthor() != null) {
+            existingBook.setAuthor(patch.getAuthor().trim());
+        }
+        if (patch.getPublisher() != null) {
+            existingBook.setPublisher(patch.getPublisher().trim());
+        }
 
         return bookRepository.save(existingBook);
     }

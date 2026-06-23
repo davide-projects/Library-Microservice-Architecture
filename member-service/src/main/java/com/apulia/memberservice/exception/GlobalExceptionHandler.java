@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -40,7 +42,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        ErrorResponse error = buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+        ErrorResponse error = buildError(HttpStatus.BAD_REQUEST, "Bad request");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
@@ -57,6 +59,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format(
+                "Invalid value '%s' for parameter '%s': expected a numeric value",
+                ex.getValue(), ex.getName()
+        );
+        ErrorResponse error = buildError(HttpStatus.BAD_REQUEST, message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        ErrorResponse error = buildError(HttpStatus.BAD_REQUEST, "Malformed JSON request body");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
@@ -70,32 +88,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<ErrorResponse> handleHttpClientError(HttpClientErrorException ex) {
         logger.warn("HTTP Client error: {} - {}", ex.getStatusCode(), ex.getMessage());
-        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
-        ErrorResponse error = buildError(
-                status != null ? status : HttpStatus.BAD_REQUEST,
-                ex.getMessage()
-        );
+        ErrorResponse error = buildError(HttpStatus.BAD_REQUEST, "Request resulted in an error");
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<ErrorResponse> handleHttpServerError(HttpServerErrorException ex) {
         logger.error("HTTP Server error: {} - {}", ex.getStatusCode(), ex.getMessage());
-        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
-        ErrorResponse error = buildError(
-                status != null ? status : HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getMessage()
-        );
+        ErrorResponse error = buildError(HttpStatus.INTERNAL_SERVER_ERROR, "An internal server error occurred");
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
         logger.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
-        ErrorResponse error = buildError(
-                HttpStatus.NOT_FOUND,
-                "Endpoint not found: " + ex.getRequestURL()
-        );
+        ErrorResponse error = buildError(HttpStatus.NOT_FOUND, "The requested endpoint does not exist");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 

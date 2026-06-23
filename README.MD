@@ -1,6 +1,6 @@
 # 📚 Apulia Library — Microservices Project
 
-Ecosistema di microservizi per la gestione di una biblioteca digitale, sviluppato con **Java 21** e **Spring Boot 4**.
+Ecosistema di microservizi per la gestione di una biblioteca digitale, sviluppato con **Java 21** e **Spring Boot 3.4.1**.
 
 ---
 
@@ -9,8 +9,9 @@ Ecosistema di microservizi per la gestione di una biblioteca digitale, sviluppat
 Il progetto e' composto da tre microservizi di business indipendenti piu' un API Gateway d'ingresso, organizzati in un progetto Maven multi-modulo:
 
 | Servizio | Descrizione | Porta interna | Accessibile dall'esterno |
-|---|---|---|---|
+|---|---|---|---|---|
 | API Gateway | Gateway d'ingresso e autenticazione Bearer Token | `8080` | **Si'** |
+| Config Server | Configurazione centralizzata (Spring Cloud Config) | `8888` | Solo health check |
 | Book Service | Gestione del catalogo libri | `8081` | No (solo via gateway) |
 | Member Service | Gestione degli utenti iscritti | `8082` | No (solo via gateway) |
 | Loan Service | Gestione dei prestiti | `8083` | No (solo via gateway) |
@@ -28,7 +29,10 @@ Il progetto e' composto da tre microservizi di business indipendenti piu' un API
 - Spring Boot Starter WebFlux (API Gateway)
 - Spring Web (Microservizi)
 - Spring Data JPA + Hibernate
-- Spring Security (Book Service)
+- Spring Security (tutti i microservizi: CORS ristretto, CSRF disabilitato)
+- Spring Cloud Config (Config Server + Client)
+- Spring Retry (config client con fail-fast)
+- Spring Cloud Gateway (API Gateway routing + Bearer Token filter)
 - Spring Validation
 - Springdoc OpenAPI 2.8.9
 - MySQL 8 (containerizzato)
@@ -47,7 +51,7 @@ Tutte le chiamate instradate tramite il Gateway sulla porta `8080` richiedono l'
 ```http
 Authorization: Bearer my-secret-token-123
 ```
-In caso di token mancante o errato, il gateway restituira' `401 Unauthorized`.
+In caso di token mancante o errato, il gateway restituira' `401 Unauthorized` con header `WWW-Authenticate: Bearer`.
 
 ### Regole di Routing
 
@@ -63,7 +67,18 @@ In caso di token mancante o errato, il gateway restituira' `401 Unauthorized`.
 
 L'intero ecosistema puo' essere compilato e avviato tramite Docker. Il database MySQL e' incluso nei servizi Docker.
 
+### Prerequisiti
+
+Prima di avviare, creare il file `.env` nella root del progetto (una copia di `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Il file `.env` contiene le credenziali sensibili (MySQL, token API Gateway) ed e' escluso da git.
+
 ### Build delle immagini e compilazione jar
+
 Da root del progetto, compila i progetti con Maven e builda i container:
 
 ```bash
@@ -93,6 +108,17 @@ Per vedere i log di un servizio (ad esempio l'api-gateway):
 docker-compose logs api-gateway
 ```
 
+### Configurazione centralizzata
+
+Il servizio **Config Server** (porta `8888`) centralizza la configurazione di tutti i microservizi. I file YAML si trovano in `config-repo/` e sono montati come volume nel container config-server per aggiornamenti senza rebuild.
+
+Ogni microservizio carica la configurazione all'avvio tramite `spring.config.import=configserver:http://config-server:8888` con retry automatico (fail-fast, max 10 tentativi).
+
+La configurazione condivisa (`config-repo/application.yml`) include:
+- `ddl-auto: update` per Hibernate
+- logging `WARN` e Swagger disabilitato
+- Parametri SSL MySQL (useSSL=false, allowPublicKeyRetrieval=true) via HikariCP properties
+
 ### Stop & Cleanup
 
 ```bash
@@ -116,7 +142,7 @@ Microservizio dedicato alla gestione del catalogo libri.
 | GET | `/book/search` | Ricerca per titolo e/o autore (es. `?title=1984`) |
 | POST | `/book` | Crea libro |
 | PUT | `/book/{id}` | Aggiorna libro |
-| PATCH | `/book/{id}` | Aggiornamento parziale |
+| PATCH | `/book/{id}` | Aggiornamento parziale (con `BookPatchDTO` validato) |
 | DELETE | `/book/{id}` | Elimina libro |
 
 ---
@@ -162,8 +188,18 @@ Library-Microservice-Architecture/
 ├── pom.xml                    (parent multi-modulo)
 ├── docker-compose.yml         (configurazione orchestratore docker)
 ├── docker-compose.school.yml  (variante per ambiente scolastico)
+├── .env.example               (template variabili d'ambiente)
 ├── mysql/
 │   └── init.sql               (script inizializzazione database)
+├── config-repo/               (configurazione centralizzata YAML)
+│   ├── application.yml        (condivisa tra tutti i servizi)
+│   ├── api-gateway.yml
+│   ├── book-service.yml
+│   ├── member-service.yml
+│   └── loan-service.yml
+├── config-server/             (Config Server)
+│   ├── Dockerfile
+│   └── src/main/
 ├── api-gateway/               (API Gateway del sistema)
 │   ├── Dockerfile
 │   └── src/main/
@@ -185,8 +221,17 @@ Library-Microservice-Architecture/
 - [x] Aggiungere API Gateway con Bearer Token Authentication
 - [x] Containerizzare MySQL nel docker-compose
 - [x] Bloccare accesso diretto ai microservizi (solo gateway esposto)
-- [ ] Aggiungere meccanismo di discovery (Eureka)
-- [ ] Centralizzare la configurazione (Spring Cloud Config)
+- [x] Centralizzare la configurazione (Spring Cloud Config)
+- [x] Credenziali in `.env` (escluse da git)
+- [x] Spring Security su tutti i microservizi (CORS ristretto)
+- [x] Token Gateway passato via variabile d'ambiente
+- [x] Sanificazione error handlers (400 per input malformati/non numerici, no leak dettagli interni)
+- [x] Fix sicurezza: NPE in TokenProperties, WWW-Authenticate su 401, SSL MySQL via HikariCP
+- [x] Validazione input (PATCH con DTO, phone uniqueness)
+- [ ] Aggiungere meccanismo di discovery (Eureka/Consul)
+- [ ] Migrazioni database con Flyway/Liquibase
+- [ ] Autenticazione JWT / OAuth2 (Keycloak)
+- [ ] Rate limiting sul gateway
 
 ---
 

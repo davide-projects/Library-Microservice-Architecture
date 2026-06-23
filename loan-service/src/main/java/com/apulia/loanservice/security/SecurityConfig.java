@@ -1,4 +1,4 @@
-package com.apulia.bookservice.security;
+package com.apulia.loanservice.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

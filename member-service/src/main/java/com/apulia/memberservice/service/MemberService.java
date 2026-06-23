@@ -35,6 +35,11 @@ public class MemberService {
     public Member updateMember(Integer id, Member updatedMember) {
         Member existing = getMemberById(id);
 
+        if (!existing.getPhone().equals(updatedMember.getPhone())
+                && memberRepository.existsByPhone(updatedMember.getPhone())) {
+            throw new IllegalArgumentException("Phone number already exists: " + updatedMember.getPhone());
+        }
+
         existing.setFirstName(updatedMember.getFirstName());
         existing.setLastName(updatedMember.getLastName());
         existing.setCity(updatedMember.getCity());

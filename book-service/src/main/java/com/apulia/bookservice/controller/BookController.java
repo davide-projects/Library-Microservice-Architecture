@@ -1,6 +1,7 @@
 package com.apulia.bookservice.controller;
 
 import com.apulia.bookservice.dto.BookDTO;
+import com.apulia.bookservice.dto.BookPatchDTO;
 import com.apulia.bookservice.model.Book;
 import com.apulia.bookservice.service.BookService;
 import jakarta.validation.Valid;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/book")
@@ -90,9 +90,9 @@ public class BookController {
     @PatchMapping("/{id}")
     public ResponseEntity<BookDTO> patchBook(
             @PathVariable("id") int id,
-            @RequestBody Map<String, Object> updates) {
+            @Valid @RequestBody BookPatchDTO patch) {
 
-        Book updated = bookService.patchBook(id, updates);
+        Book updated = bookService.patchBook(id, patch);
         return ResponseEntity.ok(toDTO(updated));
     }
 

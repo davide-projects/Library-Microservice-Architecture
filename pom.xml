@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>config-server</module>
         <module>book-service</module>
         <module>member-service</module>
         <module>loan-service</module>

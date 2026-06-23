@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -62,6 +64,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format(
+                "Invalid value '%s' for parameter '%s': expected a numeric value",
+                ex.getValue(), ex.getName()
+        );
+        ErrorResponse error = new ErrorResponse(
+                now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "BAD_REQUEST",
+                message
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        ErrorResponse error = new ErrorResponse(
+                now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "BAD_REQUEST",
+                "Malformed JSON request body"
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -73,7 +101,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
-    // Handler per errori HTTP 4xx
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<ErrorResponse> handleHttpClientError(HttpClientErrorException ex) {
         logger.warn("HTTP Client error: {} - {}", ex.getStatusCode(), ex.getMessage());
@@ -81,13 +108,12 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 now(),
                 ex.getStatusCode().value(),
-                ex.getStatusCode().toString(),
-                ex.getMessage()
+                "BAD_REQUEST",
+                "Request resulted in an error"
         );
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
-    // Handler per errori HTTP 5xx
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<ErrorResponse> handleHttpServerError(HttpServerErrorException ex) {
         logger.error("HTTP Server error: {} - {}", ex.getStatusCode(), ex.getMessage());
@@ -95,13 +121,12 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 now(),
                 ex.getStatusCode().value(),
-                ex.getStatusCode().toString(),
-                ex.getMessage()
+                "SERVER_ERROR",
+                "An internal server error occurred"
         );
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
 
-    // Handler per endpoint non trovati
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
         logger.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
@@ -110,7 +135,7 @@ public class GlobalExceptionHandler {
                 now(),
                 HttpStatus.NOT_FOUND.value(),
                 "NOT_FOUND",
-                "Endpoint not found: " + ex.getRequestURL()
+                "The requested endpoint does not exist"
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -123,7 +148,7 @@ public class GlobalExceptionHandler {
                 now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "INTERNAL_SERVER_ERROR",
-                ex.getMessage() != null ? ex.getMessage() : "Unexpected error occurred"
+                "Unexpected error occurred"
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

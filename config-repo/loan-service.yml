@@ -1,0 +1,8 @@
+server:
+  port: 8083
+
+microservices:
+  book-service:
+    url: http://book-service:8081/book
+  member-service:
+    url: http://member-service:8082/members
