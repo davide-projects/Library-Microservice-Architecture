@@ -23,6 +23,11 @@ security:
     valid:
       - ${API_GATEWAY_TOKEN}
 
+ratelimit:
+  capacity: 10
+  refill-tokens: 10
+  refill-seconds: 60
+
 management:
   endpoints:
     web:

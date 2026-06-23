@@ -36,6 +36,8 @@ Il progetto e' composto da tre microservizi di business indipendenti piu' un API
 - Spring Validation
 - Springdoc OpenAPI 2.8.9
 - MySQL 8 (containerizzato)
+- Flyway (migrazioni database)
+- Bucket4j (rate limiting sul gateway)
 - Lombok
 - Maven (struttura multi-modulo)
 - Docker & Docker Compose
@@ -232,10 +234,10 @@ Library-Microservice-Architecture/
 - [x] Sanificazione error handlers (400 per input malformati/non numerici, no leak dettagli interni)
 - [x] Fix sicurezza: NPE in TokenProperties, WWW-Authenticate su 401, SSL MySQL via HikariCP
 - [x] Validazione input (PATCH con DTO, phone uniqueness)
-- [ ] Aggiungere meccanismo di discovery (Eureka/Consul)
-- [ ] Migrazioni database con Flyway/Liquibase
+- [x] Migrazioni database con Flyway
+- [x] Rate limiting sul gateway (Bucket4j)
 - [ ] Autenticazione JWT / OAuth2 (Keycloak)
-- [ ] Rate limiting sul gateway
+
 
 ---
 

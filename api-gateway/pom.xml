@@ -61,6 +61,19 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
+		<!-- Bucket4j for rate limiting -->
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.10.1</version>
+		</dependency>
+
+		<!-- JCache (JSR-107) for Bucket4j -->
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+		</dependency>
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
