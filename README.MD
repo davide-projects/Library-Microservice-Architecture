@@ -8,16 +8,20 @@ Ecosistema di microservizi per la gestione di una biblioteca digitale, sviluppat
 
 Il progetto e' composto da tre microservizi di business indipendenti piu' un API Gateway d'ingresso, organizzati in un progetto Maven multi-modulo:
 
-| Servizio | Descrizione | Porta interna | Accessibile dall'esterno |
-|---|---|---|---|---|
-| API Gateway | Gateway d'ingresso e autenticazione Bearer Token | `8080` | **Si'** |
-| Config Server | Configurazione centralizzata (Spring Cloud Config) | `8888` | Solo health check |
-| Book Service | Gestione del catalogo libri | `8081` | No (solo via gateway) |
-| Member Service | Gestione degli utenti iscritti | `8082` | No (solo via gateway) |
-| Loan Service | Gestione dei prestiti | `8083` | No (solo via gateway) |
-| MySQL | Database relazionale | `3306` | No (solo rete interna Docker) |
+| Servizio | Descrizione | Porta interna | Health check | Accessibile dall'esterno |
+|---|---|---|---|---|---|
+| API Gateway | Gateway d'ingresso e autenticazione Bearer Token | `8080` | `/actuator/health` (richiede token) | **Si'** |
+| Config Server | Configurazione centralizzata (Spring Cloud Config) | `8888` | `/actuator/health` | Solo health check |
+| Book Service | Gestione del catalogo libri | `8081` | `/actuator/health` | No (solo via gateway) |
+| Member Service | Gestione degli utenti iscritti | `8082` | `/actuator/health` | No (solo via gateway) |
+| Loan Service | Gestione dei prestiti | `8083` | `/actuator/health` | No (solo via gateway) |
+| MySQL | Database relazionale | `3306` | — | No (solo rete interna Docker) |
 
 > **Nota:** L'unico punto di ingresso e' il **API Gateway sulla porta `8080`**. I microservizi non sono direttamente raggiungibili dall'esterno.
+
+## Health Check
+
+Ogni microservizio espone l'endpoint `/actuator/health` di Spring Boot Actuator (verifica database, disco, ping). Il Config Server e' accessibile sulla porta `8888`, mentre per i microservizi interni l'health check e' visibile solo dalla rete Docker interna (es. da config-server). L'API Gateway richiede il token di autenticazione anche per l'health check.
 
 ---
 
@@ -33,6 +37,7 @@ Il progetto e' composto da tre microservizi di business indipendenti piu' un API
 - Spring Cloud Config (Config Server + Client)
 - Spring Retry (config client con fail-fast)
 - Spring Cloud Gateway (API Gateway routing + Bearer Token filter)
+- Spring Boot Actuator (health check su tutti i microservizi)
 - Spring Validation
 - Springdoc OpenAPI 2.8.9
 - MySQL 8 (containerizzato)

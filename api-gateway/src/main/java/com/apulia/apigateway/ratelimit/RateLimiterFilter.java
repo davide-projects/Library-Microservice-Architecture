@@ -64,9 +64,10 @@ public class RateLimiterFilter implements WebFilter {
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
             return xForwardedFor.split(",")[0].trim();
         }
-        String remoteAddress = exchange.getRequest().getRemoteAddress() != null
-                ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
-                : "unknown";
-        return remoteAddress;
+        java.net.InetSocketAddress remote = exchange.getRequest().getRemoteAddress();
+        if (remote != null && remote.getAddress() != null) {
+            return remote.getAddress().getHostAddress();
+        }
+        return "unknown";
     }
 }
